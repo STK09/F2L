@@ -7,7 +7,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 # Enable logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-# Directly set the bot token (for testing only)
+# Set bot token (Make sure to remove it later for security)
 TOKEN = "7646802131:AAHNU9mpzQil2hKRz9hbPggjOoBR7q0aOlU"
 CLOUDFLARE_WORKER_URL = "https://drive-cdn.soutick-op.workers.dev/"
 
@@ -17,7 +17,7 @@ async def start(update: Update, context: CallbackContext) -> None:
 
 async def handle_document(update: Update, context: CallbackContext) -> None:
     """Handle file uploads and generate a temporary download link."""
-    file = update.message.document or update.message.video or update.message.photo[-1] if update.message.photo else None
+    file = update.message.document or update.message.video or (update.message.photo[-1] if update.message.photo else None)
     
     if not file:
         await update.message.reply_text("Unsupported file type.")
@@ -40,8 +40,9 @@ def main():
     # Command handlers
     app.add_handler(CommandHandler("start", start))
 
-    # File handlers (Corrected filters)
-    app.add_handler(MessageHandler(filters.Document | filters.VIDEO | filters.PHOTO, handle_document))
+    # File handlers (Corrected filter syntax)
+    file_filter = filters.Document.ALL | filters.Video.ALL | filters.PHOTO
+    app.add_handler(MessageHandler(file_filter, handle_document))
 
     # Print message to VPS terminal
     print("Bot is running...")
