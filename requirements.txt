@@ -1,5 +1,2 @@
 python-telegram-bot
-python-dotenv
-fuzzywuzzy
 requests
-rapidfuzz
