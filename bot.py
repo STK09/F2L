@@ -2,7 +2,7 @@ import os
 import logging
 import requests
 from dotenv import load_dotenv
-from fuzzywuzzy import process
+from rapidfuzz import process
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
@@ -11,13 +11,21 @@ load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 API_ID = os.getenv("API_ID")
 API_HASH = os.getenv("API_HASH")
+GROUP_ID = int(os.getenv("GROUP_ID"))  # Allowed group ID
 
 # Logging setup
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Predefined anime list (expandable)
-ANIME_LIST = ["Attack on Titan", "Alya Sometimes Hides Her Feelings in Russian", "Haikyuu", "Naruto Shippuden", "Dan Da Dan"]
+# Function to fetch anime names from Jikan API
+def fetch_anime_list():
+    url = "https://api.jikan.moe/v4/anime"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return [anime["title"] for anime in response.json().get("data", [])]
+    return []
+
+ANIME_LIST = fetch_anime_list()
 
 # Function to search anime
 def search_anime(query):
@@ -27,19 +35,29 @@ def search_anime(query):
         return f"https://anitown4u.com/search?s_keyword={search_query}", best_match[0]
     return None, None
 
+# Check if the bot is used in the allowed group
+def check_group(update: Update):
+    return update.message.chat.id == GROUP_ID
+
 # /start command
 def start(update: Update, context: CallbackContext):
+    if not check_group(update):
+        update.message.reply_text("🚫 This bot is only available in the specific group.")
+        return
     update.message.reply_text("✅ Bot is live!\n\nMade With ♥️ By Soutick")
 
 # Handle /anime command
 def anime(update: Update, context: CallbackContext):
+    if not check_group(update):
+        return
+
     if len(context.args) == 0:
         update.message.reply_text("⚠️ Please enter an anime name. Example: /anime naruto")
         return
     
     query = " ".join(context.args)
-    update.message.reply_text("🔎 Hold on...")
-    
+    update.message.reply_text("🔎 Searching...")
+
     search_url, anime_name = search_anime(query)
     
     if search_url:
@@ -49,11 +67,13 @@ def anime(update: Update, context: CallbackContext):
     else:
         update.message.reply_text("❌ Sorry, this anime isn't available on the website. Admin will upload it soon.")
 
-# Detecting general anime search requests
+# Detect general anime search requests
 def detect_search_request(update: Update, context: CallbackContext):
+    if not check_group(update):
+        return
+
     message = update.message.text.lower()
-    user_id = update.message.from_user.id
-    
+
     # Common search patterns
     search_patterns = [
     # English
@@ -94,21 +114,21 @@ def detect_search_request(update: Update, context: CallbackContext):
     "link plz", "any site for", "any way to watch", "how can i get", "tell me site", "movie site link",
     "series site", "where can i find", "website for streaming", "link do", "how can i download"
 ]
+
     
     if any(pattern in message for pattern in search_patterns):
-    for pattern in search_patterns:
-        message = message.replace(pattern, "")
-    
-    query = message.strip()
+        for pattern in search_patterns:
+            message = message.replace(pattern, "")
 
-        
+        query = message.strip()
         search_url, anime_name = search_anime(query)
+
         if search_url:
             keyboard = [[InlineKeyboardButton(anime_name, url=search_url)]]
             reply_markup = InlineKeyboardMarkup(keyboard)
             update.message.reply_text(f"I found {anime_name} 👇", reply_markup=reply_markup, reply_to_message_id=update.message.message_id)
         else:
-            update.message.reply_text("❌ Sorry, this anime isn't available on the website. Admin will upload it soon.", reply_to_message_id=update.message.message_id)
+            update.message.reply_text("❌ Sorry, this anime isn't available on the website.", reply_to_message_id=update.message.message_id)
 
 # Main function
 if __name__ == "__main__":
