@@ -1,0 +1,8 @@
+version: '3'
+services:
+  telegram-bot:
+    build: .
+    container_name: telegram_bot
+    restart: always
+    environment:
+      - BOT_TOKEN=7646802131:AAHNU9mpzQil2hKRz9hbPggjOoBR7q0aOlU
