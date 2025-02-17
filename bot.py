@@ -40,8 +40,8 @@ def main():
     # Command handlers
     app.add_handler(CommandHandler("start", start))
 
-    # File handlers
-    app.add_handler(MessageHandler(filters.Document | filters.Video | filters.PHOTO, handle_document))
+    # File handlers (Corrected filters)
+    app.add_handler(MessageHandler(filters.Document | filters.VIDEO | filters.PHOTO, handle_document))
 
     # Print message to VPS terminal
     print("Bot is running...")
