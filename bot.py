@@ -7,8 +7,8 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 # Enable logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-# Load environment variables
-TOKEN = os.getenv("BOT_TOKEN")  # Get token from environment variables
+# Directly set the bot token (for testing only)
+TOKEN = "7646802131:AAHNU9mpzQil2hKRz9hbPggjOoBR7q0aOlU"
 CLOUDFLARE_WORKER_URL = "https://drive-cdn.soutick-op.workers.dev/"
 
 async def start(update: Update, context: CallbackContext) -> None:
