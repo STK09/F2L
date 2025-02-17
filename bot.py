@@ -7,8 +7,8 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 # Enable logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-# Set bot token (Make sure to remove it later for security)
-TOKEN = "7646802131:AAHNU9mpzQil2hKRz9hbPggjOoBR7q0aOlU"
+# Get bot token from environment variable
+TOKEN = os.getenv("BOT_TOKEN")
 CLOUDFLARE_WORKER_URL = "https://drive-cdn.soutick-op.workers.dev/"
 
 async def start(update: Update, context: CallbackContext) -> None:
@@ -41,7 +41,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
 
     # File handlers (Corrected filter syntax)
-    file_filter = filters.Document.ALL | filters.Video.ALL | filters.PHOTO
+    file_filter = filters.Document.ALL | filters.VIDEO | filters.PHOTO
     app.add_handler(MessageHandler(file_filter, handle_document))
 
     # Print message to VPS terminal
